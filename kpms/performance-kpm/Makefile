@@ -1,14 +1,14 @@
 ifndef TARGET_COMPILE
-    TARGET_COMPILE := 
+    TARGET_COMPILE := aarch64-linux-gnu-
 endif
 
 ifndef KP_DIR
     KP_DIR = ../..
 endif
 
-# Enforce Clang/LLD since OnePlus 9 Pro kernel is compiled with Clang 11.0.2
-CC = $(TARGET_COMPILE)clang
-LD = $(TARGET_COMPILE)ld.lld
+# Fallback to GCC since Clang/LLD may generate unsupported ARM64 relocations for KPM loader
+CC = $(TARGET_COMPILE)gcc
+LD = $(TARGET_COMPILE)ld
 
 CFLAGS += -O2 -fno-builtin -nostdlib -mgeneral-regs-only
 LDFLAGS += -r
