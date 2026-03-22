@@ -8,8 +8,18 @@ endif
 
 TARGET = performance
 
-CC = $(TARGET_COMPILE)gcc
-LD = $(TARGET_COMPILE)ld
+# If CC/LD are passed from the command line, they will override these defaults.
+CC ?= $(TARGET_COMPILE)gcc
+LD ?= $(TARGET_COMPILE)ld
+
+# Use Clang-compatible flags if CC contains clang, else GCC defaults
+CFLAGS += -O2
+ifneq (,$(findstring clang,$(CC)))
+    # Clang specific flags for kernel modules (avoids floating point and unsupported relocs)
+    CFLAGS += -mgeneral-regs-only -nostdlib -fno-builtin -fpic
+else
+    CFLAGS += -mgeneral-regs-only -nostdlib -fno-builtin
+endif
 
 INCLUDE_DIRS := . include patch/include linux/include linux/arch/arm64/include linux/tools/arch/arm64/include
 INCLUDE_FLAGS := $(foreach dir,$(INCLUDE_DIRS),-I$(KP_DIR)/kernel/$(dir))
@@ -19,14 +29,11 @@ objs := $(TARGET).o
 all: $(TARGET).kpm
 
 $(TARGET).kpm: ${objs}
-	${CC} -r -o $@ $^
-	# APatch KernelPatch check_kpm() strictly requires ELFOSABI_NONE (0x00)
-	# Ubuntu's aarch64-linux-gnu-gcc writes ELFOSABI_GNU (0x03), causing load failed: -8 (ENOEXEC)
-	# This single command byte-patches offset 7 of the ELF header to 0x00, unconditionally fixing the error.
-	printf '\x00' | dd of=$@ bs=1 seek=7 conv=notrunc
+	# Link the KPM using relocatable output (-r)
+	${LD} -r -o $@ $^
 
 %.o: %.c
-	${CC} $(CFLAGS) $(INCLUDE_FLAGS) -T$(TARGET).lds -c -O2 -o $@ $<
+	${CC} $(CFLAGS) $(INCLUDE_FLAGS) -T$(TARGET).lds -c -o $@ $<
 
 .PHONY: clean
 clean:

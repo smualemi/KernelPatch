@@ -15,15 +15,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      - name: Install Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
-          
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r26d
+
       - name: Build Performance KPM
         run: |
           cd kpms/performance-kpm
-          make
+          # Use Android NDK Clang to compile. This guarantees compatible ELFs and Relocation Types.
+          export TARGET_COMPILE="${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android-"
+          make CC="${TARGET_COMPILE}34-clang" LD="${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin/ld.lld"
           
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
