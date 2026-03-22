@@ -1,0 +1,32 @@
+name: Build KPM
+
+on:
+  push:
+    paths:
+      - 'kpms/**'
+      - '.github/workflows/**'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang lld
+          
+      - name: Build Performance KPM
+        run: |
+          cd kpms/performance-kpm
+          make
+          
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-kpm
+          path: kpms/performance-kpm/*.kpm
