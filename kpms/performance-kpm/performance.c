@@ -9,6 +9,7 @@
 #include <common.h>
 #include <kputils.h>
 #include <linux/string.h>
+#include <hook.h>
 
 KPM_NAME("perf-op9p");
 KPM_VERSION("5.0.0");
