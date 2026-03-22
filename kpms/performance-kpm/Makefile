@@ -6,26 +6,23 @@ ifndef KP_DIR
     KP_DIR = ../..
 endif
 
-# Fallback to GCC since Clang/LLD may generate unsupported ARM64 relocations for KPM loader
+TARGET = performance
+
 CC = $(TARGET_COMPILE)gcc
 LD = $(TARGET_COMPILE)ld
 
-CFLAGS += -O2 -fno-builtin -nostdlib -mgeneral-regs-only
-LDFLAGS += -r
-
 INCLUDE_DIRS := . include patch/include linux/include linux/arch/arm64/include linux/tools/arch/arm64/include
-
 INCLUDE_FLAGS := $(foreach dir,$(INCLUDE_DIRS),-I$(KP_DIR)/kernel/$(dir))
 
-objs := performance.o
+objs := $(TARGET).o
 
-all: performance.kpm
+all: $(TARGET).kpm
 
-performance.kpm: ${objs}
-	${LD} ${LDFLAGS} -o $@ $^
+$(TARGET).kpm: ${objs}
+	${CC} -r -o $@ $^
 
 %.o: %.c
-	${CC} $(CFLAGS) $(INCLUDE_FLAGS) -Tperformance.lds -c -O2 -o $@ $<
+	${CC} $(CFLAGS) $(INCLUDE_FLAGS) -T$(TARGET).lds -c -O2 -o $@ $<
 
 .PHONY: clean
 clean:
