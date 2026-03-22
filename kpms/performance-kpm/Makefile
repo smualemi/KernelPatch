@@ -25,7 +25,7 @@ performance.kpm: ${objs}
 	${LD} ${LDFLAGS} -o $@ $^
 
 %.o: %.c
-	${CC} $(CFLAGS) $(INCLUDE_FLAGS) -c -O2 -o $@ $<
+	${CC} $(CFLAGS) $(INCLUDE_FLAGS) -Tperformance.lds -c -O2 -o $@ $<
 
 .PHONY: clean
 clean:
